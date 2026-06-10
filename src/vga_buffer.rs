@@ -146,3 +146,31 @@ const BUFFER_WIDTH: usize = 80;
 struct ScreenBuffer {
     chars: [[Volatile<ScreenChar>; BUFFER_WIDTH]; BUFFER_HEIGHT],
 }
+
+#[test_case]
+fn test_println_simple() {
+    println!("test_println_simple output");
+}
+
+#[test_case]
+fn test_println_many() {
+    for _ in 0..200 {
+        println!("test_println_many output");
+    }
+}
+
+#[test_case]
+fn test_println_output() {
+    let s = "test string";
+    println!("{s}");
+    // verify string is moved up one line after new line
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
+    // verify bottom line is clear
+    for col in 0..BUFFER_WIDTH {
+        let screen_char = WRITER.lock().buffer.chars[BUFFER_HEIGHT - 1][col].read();
+        assert_eq!(char::from(screen_char.ascii_character), ' ');
+    }
+}
